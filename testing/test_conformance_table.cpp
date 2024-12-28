@@ -222,7 +222,7 @@ TEST_P(ConformanceTest, ValidateScores)
 		Image inputImage;
 		ReturnStatus retStatus = OFIQ_LIB::readImage(imageFile, inputImage);
 		ASSERT_TRUE(retStatus.code == OFIQ::ReturnCode::Success);
-		ofiqImpl->vectorQuality(inputImage, assessments);
+		ofiqImpl->vectorQuality(inputImage, assessments, imageFile);
 		assessmentsCache[filename] = assessments;
 	}
 

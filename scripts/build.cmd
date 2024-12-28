@@ -3,8 +3,8 @@
 set build_dir=build\build_win
 set architecture=x64  
 set install_dir=install_x86_64
-set set_compiler=""
-set generator="Visual Studio 16 2019"
+set set_compiler="17"
+set generator="Visual Studio 17 2022"
 set use_conan=ON
 set download=ON
 set config=Release

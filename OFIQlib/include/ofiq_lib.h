@@ -92,7 +92,7 @@ namespace OFIQ
          * score or the value is unassigned.
          * @return OFIQ::ReturnStatus
          */
-        virtual OFIQ::ReturnStatus scalarQuality(const OFIQ::Image& face, double& quality) = 0;
+        virtual OFIQ::ReturnStatus scalarQuality(const OFIQ::Image& face, double& quality, const std::string& inputFile) = 0;
 
         /**
          * @brief  This function takes an image and outputs quality information.
@@ -113,7 +113,7 @@ namespace OFIQ
          * @return OFIQ::ReturnStatus
          */
         virtual OFIQ::ReturnStatus vectorQuality(
-            const OFIQ::Image& image, OFIQ::FaceImageQualityAssessment& assessments) = 0;
+            const OFIQ::Image& image, OFIQ::FaceImageQualityAssessment& assessments, const std::string& inputFile) = 0;
 
         /**
          * @brief

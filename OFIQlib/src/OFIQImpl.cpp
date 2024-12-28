@@ -32,6 +32,10 @@
 #include "utils.h"
 #include "image_io.h"
 #include <chrono>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+#include <map>
 using hrclock = std::chrono::high_resolution_clock;
 
 using namespace std;
@@ -62,11 +66,11 @@ ReturnStatus OFIQImpl::initialize(const std::string& configDir, const std::strin
     return ReturnStatus(ReturnCode::Success);
 }
 
-ReturnStatus OFIQImpl::scalarQuality(const OFIQ::Image& face, double& quality)
+ReturnStatus OFIQImpl::scalarQuality(const OFIQ::Image& face, double& quality, const std::string& inputFile)
 {
     FaceImageQualityAssessment assessments;
 
-    if (auto result = vectorQuality(face, assessments); 
+    if (auto result = vectorQuality(face, assessments, inputFile);
         result.code != ReturnCode::Success)
         return result;
 
@@ -91,7 +95,7 @@ ReturnStatus OFIQImpl::scalarQuality(const OFIQ::Image& face, double& quality)
     return ReturnStatus(ReturnCode::Success);
 }
 
-void OFIQImpl::performPreprocessing(Session& session)
+void OFIQImpl::performPreprocessing(Session& session, const std::string& inputFile)
 {
     std::chrono::time_point<hrclock> tic;
 
@@ -146,6 +150,12 @@ void OFIQImpl::performPreprocessing(Session& session)
     log(std::to_string(
         std::chrono::duration_cast<std::chrono::milliseconds>(
             hrclock::now() - tic).count()) + std::string(" ms "));
+    
+    //cv::imwrite("testFaceParsingImage.jpg", session.getFaceParsingImage());
+
+    //addLandmarksToImage(session);
+
+    divideFaceSkinRegion(session, inputFile);
 
     log("6. getFaceOcclusionMask ");
     tic = hrclock::now();
@@ -200,15 +210,185 @@ void OFIQImpl::alignFaceImage(Session& session) {
 
 }
 
+void OFIQImpl::addLandmarksToImage(Session& session) {
+    auto landmarks = session.getAlignedFaceLandmarks();
+
+    cv::Mat faceSegmentationImage = session.getFaceParsingImage().clone();
+
+    float scalingFactor = 400.0f / (session.getAlignedFace().rows - 60.0f);
+
+    OFIQ::Landmarks scaledLandmarks;
+    // for each landmark subtract 30 from the x-value
+    // multiply the x- and y-value in each landmark with the scaling factor
+    for (int i = 0; i < landmarks.landmarks.size(); i++)
+    {
+        auto newX = static_cast<int>(std::round((static_cast<float>(landmarks.landmarks[i].x) - 30) * scalingFactor));
+        auto newY = static_cast<int>(std::round(static_cast<float>(landmarks.landmarks[i].y) * scalingFactor));
+
+        scaledLandmarks.emplace_back(
+            OFIQ::LandmarkPoint(static_cast<uint16_t>(newX), static_cast<uint16_t>(newY)));
+
+        faceSegmentationImage.at<uchar>(newY, newX) = 255;
+    }
+
+    cv::imwrite("faceParsingImageWithLandmarks.jpg", faceSegmentationImage);
+
+
+
+    // set the pixels at the landmark coordinates to 255 in value
+
+    // save image
+}
+
+
+cv::Mat OFIQImpl::getPolygonMask(OFIQ::Landmarks polygonPoints, int maskSizeOneDirection, int pixelValue) {
+
+    int noOfPoints = static_cast<int>(polygonPoints.size());
+
+    std::vector<cv::Point> landmarkPolygonPoints;
+
+    for (int i = 0; i < noOfPoints; i++)
+    {
+        cv::Point point = cv::Point(polygonPoints[i].x, polygonPoints[i].y);
+        landmarkPolygonPoints.push_back(point);
+    }
+
+    std::vector<vector<cv::Point>> vectorOfVectorWithPoints; // cv::fillPoly accepts vector of vectors with points for polygons (so multiple polygons)
+    vectorOfVectorWithPoints.push_back(landmarkPolygonPoints);
+
+    cv::Mat mask = cv::Mat::zeros(maskSizeOneDirection, maskSizeOneDirection, CV_8U);
+
+    cv::fillPoly(mask, vectorOfVectorWithPoints, cv::Scalar(pixelValue));
+
+    //cv::imwrite("polygonMask.jpg", mask);
+
+    return mask;
+}
+
+void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
+    auto landmarks = session.getAlignedFaceLandmarks();
+
+    cv::Mat faceParsingImage = session.getFaceParsingImage().clone();
+
+    float scalingFactor = 400.0f / (session.getAlignedFace().rows - 60.0f);
+
+    OFIQ::Landmarks scaledLandmarks;
+    // for each landmark subtract 30 from the x-value
+    // multiply the x- and y-value in each landmark with the scaling factor
+    for (int i = 0; i < landmarks.landmarks.size(); i++)
+    {
+        auto newX = static_cast<int>(std::round((static_cast<float>(landmarks.landmarks[i].x) - 30) * scalingFactor));
+        auto newY = static_cast<int>(std::round(static_cast<float>(landmarks.landmarks[i].y) * scalingFactor));
+
+        scaledLandmarks.emplace_back(
+            OFIQ::LandmarkPoint(static_cast<uint16_t>(newX), static_cast<uint16_t>(newY)));
+    }
+
+
+    //std::cout << "Before making polygons" << std::endl;
+
+    std::vector<int> rightCheekLandmarkIds{ 51, 52, 53, 54, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 46, 47, 48, 49, 50 };
+    std::vector<int> leftCheekLandmarkIds{ 51, 52, 53, 54, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 33, 41, 40, 39, 38 };
+    std::vector<int> oralRegionLandmarkIds{ 54, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9 };
+
+    std::map<std::string, std::vector<int>> faceSkinSubRegions;
+
+    faceSkinSubRegions["RightCheek"] = rightCheekLandmarkIds;
+    faceSkinSubRegions["LeftCheek"] = leftCheekLandmarkIds;
+    faceSkinSubRegions["Oral"] = oralRegionLandmarkIds;
+
+    //std::cout << "Before mask creation loop" << std::endl;
+
+
+    std::map<std::string, cv::Mat> regionMasks;
+    for (const auto& [regionName, landmarkIds] : faceSkinSubRegions)
+    {
+        OFIQ::Landmarks subRegionLandmarks;
+        for (int i = 0; i < landmarkIds.size(); i++) {
+            subRegionLandmarks.emplace_back(scaledLandmarks[landmarkIds[i]]);
+        }
+
+        cv::Mat mask = getPolygonMask(subRegionLandmarks, 400, 1);
+        regionMasks.insert(make_pair(regionName, mask));
+    }
+
+    //std::cout << "Before pixel loop" << std::endl;
+
+
+    for (int i = 0; i < 400; i++) // For each pixel: 400 is the width and height of the image
+    {
+        for (int j = 0; j < 400; j++) // For each pixel: 400 is the width and height of the image
+        {
+            if (faceParsingImage.at<uchar>(i, j) == 1) // face skin is value 1
+            {
+                //TODO: Next step is to implement the ray casting algorithm. Or not, use cv::fillPoly()
+
+                int regionClassNumber = 19;
+                bool isPixelInASubRegion = false;
+                for (const auto& [regionName, mask] : regionMasks)
+                {
+                    if (mask.at<uchar>(i, j) == 1) // we have chosen 1 as the pixel value for masks for now
+                    {
+                        faceParsingImage.at<uchar>(i, j) = (regionClassNumber - 17) * 30; // TODO: create map from region name to class number
+                        isPixelInASubRegion = true;
+                        break;
+                    }
+                    regionClassNumber++;
+                }
+
+                if (!isPixelInASubRegion)
+                {
+                    faceParsingImage.at<uchar>(i, j) = 255; // residual face skin
+                }
+
+                //if (polygonMaskRightCheek.at<uchar>(i, j) == 1) // we have chosen 1 as the pixel value for masks for now
+                //{
+                //    faceParsingImage.at<uchar>(i, j) = 100;
+                //}
+                //else if (polygonMaskLeftCheek.at<uchar>(i, j) == 1) // we have chosen 1 as the pixel value for masks for now
+                //{
+                //    faceParsingImage.at<uchar>(i, j) = 150;
+                //}
+                //else if (polygonMaskOralRegion.at<uchar>(i, j) == 1) // we have chosen 1 as the pixel value for masks for now
+                //{
+                //    faceParsingImage.at<uchar>(i, j) = 200;
+                //}
+                //else // face skin residual
+                //{
+                //    faceParsingImage.at<uchar>(i, j) = 50;
+                //}
+            }
+        }
+    }
+
+    //std::cout << "After pixel loop" << std::endl;
+    std::cout << inputFile << std::endl;
+
+    std::string outputFaceParsing = "./face_parsing_images/face_parsing_" + inputFile;
+    std::cout << outputFaceParsing << std::endl;
+    cv::imwrite(outputFaceParsing, faceParsingImage);
+
+    std::string outputAlignedImage = "./aligned_images/aligned_" + inputFile;
+    std::cout << outputAlignedImage << std::endl;
+    cv::imwrite(outputAlignedImage, session.getAlignedFace());
+
+
+
+    // set the pixels at the landmark coordinates to 255 in value
+
+    // save image
+}
+
+
 ReturnStatus OFIQImpl::vectorQuality(
-    const OFIQ::Image& image, OFIQ::FaceImageQualityAssessment& assessments)
+    const OFIQ::Image& image, OFIQ::FaceImageQualityAssessment& assessments, const std::string& inputFile)
 {
     auto session = Session(image, assessments);
 
     try
     {
         log("perform preprocessing:\n");
-        performPreprocessing(session);
+        performPreprocessing(session, inputFile);
     }
     catch (const OFIQError& e)
     {
