@@ -287,15 +287,46 @@ void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
 
     //std::cout << "Before making polygons" << std::endl;
 
-    std::vector<int> rightCheekLandmarkIds{ 51, 52, 53, 54, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 46, 47, 48, 49, 50 };
-    std::vector<int> leftCheekLandmarkIds{ 51, 52, 53, 54, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 33, 41, 40, 39, 38 };
-    std::vector<int> oralRegionLandmarkIds{ 54, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9 };
+    //std::vector<int> rightCheekLandmarkIds{ 51, 52, 53, 54, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 46, 47, 48, 49, 50 };
+    //std::vector<int> leftCheekLandmarkIds{ 51, 52, 53, 54, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 33, 41, 40, 39, 38 };
+    //std::vector<int> oralRegionLandmarkIds{ 54, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9 };
+    //
+    std::vector<int> leftOrbitalRegionLandmarkIds{ 33, 41, 40, 39, 38, 51, 64, 63, 62, 61, 60 };
+    std::vector<int> rightOrbitalRegionLandmarkIds{ 46, 47, 48, 49, 50, 51, 68, 69, 70, 71, 72 };
+    std::vector<int> nasalRegionLandmarkIds{ 51, 64, 76, 77, 78, 79, 80, 81, 82, 68 };
+    std::vector<int> mentalRegionLandmarkIds{ 82, 83, 84, 85, 86, 87, 76, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 };
+    std::vector<int> leftBuccalRegionLandmarkIds{ 5, 6, 7, 8, 9, 10, 11, 76, 55 };
+    std::vector<int> rightBuccalRegionLandmarkIds{ 27, 26, 25, 24, 23, 22, 21, 82, 59 };
+    std::vector<int> leftZygoInfraParoRegionLandmarkIds{ 0, 1, 2, 3, 4, 5, 55, 64, 65, 66, 67, 60 }; // zygomatic, infraorbital, parotid
+    std::vector<int> rightZygoInfraParoRegionLandmarkIds{ 27, 28, 29, 30, 31, 32, 72, 73, 74, 75, 68, 59, 82 }; // zygomatic, infraorbital, parotid
 
     std::map<std::string, std::vector<int>> faceSkinSubRegions;
 
-    faceSkinSubRegions["RightCheek"] = rightCheekLandmarkIds;
-    faceSkinSubRegions["LeftCheek"] = leftCheekLandmarkIds;
-    faceSkinSubRegions["Oral"] = oralRegionLandmarkIds;
+    //faceSkinSubRegions["RightCheek"] = rightCheekLandmarkIds;
+    //faceSkinSubRegions["LeftCheek"] = leftCheekLandmarkIds;
+    //faceSkinSubRegions["Oral"] = oralRegionLandmarkIds;
+
+
+    faceSkinSubRegions["Nasal"] = nasalRegionLandmarkIds;
+    faceSkinSubRegions["LeftOrbital"] = leftOrbitalRegionLandmarkIds;
+    faceSkinSubRegions["RightOrbital"] = rightOrbitalRegionLandmarkIds;
+    faceSkinSubRegions["Mental"] = mentalRegionLandmarkIds;
+    faceSkinSubRegions["LeftBuccal"] = leftBuccalRegionLandmarkIds;
+    faceSkinSubRegions["RightBuccal"] = rightBuccalRegionLandmarkIds;
+    faceSkinSubRegions["LeftZygoInfraParo"] = leftZygoInfraParoRegionLandmarkIds;
+    faceSkinSubRegions["RightZygoInfraParo"] = rightZygoInfraParoRegionLandmarkIds;
+
+    std::map<std::string, int> faceSkinSubRegionsClassNumbers;
+
+    faceSkinSubRegionsClassNumbers["Nasal"] = 20;
+    faceSkinSubRegionsClassNumbers["LeftOrbital"] = 21;
+    faceSkinSubRegionsClassNumbers["RightOrbital"] = 22;
+    faceSkinSubRegionsClassNumbers["Mental"] = 23;
+    faceSkinSubRegionsClassNumbers["LeftBuccal"] = 24;
+    faceSkinSubRegionsClassNumbers["RightBuccal"] = 25;
+    faceSkinSubRegionsClassNumbers["LeftZygoInfraParo"] = 26;
+    faceSkinSubRegionsClassNumbers["RightZygoInfraParo"] = 27;
+
 
     //std::cout << "Before mask creation loop" << std::endl;
 
@@ -323,17 +354,15 @@ void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
             {
                 //TODO: Next step is to implement the ray casting algorithm. Or not, use cv::fillPoly()
 
-                int regionClassNumber = 19;
                 bool isPixelInASubRegion = false;
                 for (const auto& [regionName, mask] : regionMasks)
                 {
                     if (mask.at<uchar>(i, j) == 1) // we have chosen 1 as the pixel value for masks for now
                     {
-                        faceParsingImage.at<uchar>(i, j) = (regionClassNumber - 17) * 30; // TODO: create map from region name to class number
+                        faceParsingImage.at<uchar>(i, j) = faceSkinSubRegionsClassNumbers[regionName];
                         isPixelInASubRegion = true;
-                        break;
+                        break; // We have the most important regions listed first, so the first one we encounter is the one that the pixel should belong to
                     }
-                    regionClassNumber++;
                 }
 
                 if (!isPixelInASubRegion)
@@ -364,13 +393,17 @@ void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
     //std::cout << "After pixel loop" << std::endl;
     std::cout << inputFile << std::endl;
 
-    std::string outputFaceParsing = "./face_parsing_images/face_parsing_" + inputFile;
-    std::cout << outputFaceParsing << std::endl;
-    cv::imwrite(outputFaceParsing, faceParsingImage);
+    std::string inputFileWithoutExtension = inputFile.substr(0, inputFile.find_last_of("."));
+    std::string outputPathFaceParsing = "./face_parsing_images/face_parsing_" + inputFileWithoutExtension + ".png";
+    cv::resize(faceParsingImage, faceParsingImage, cv::Size(200, 200));
+    //std::cout << outputFaceParsing << std::endl;
+    cv::imwrite(outputPathFaceParsing, faceParsingImage);
 
-    std::string outputAlignedImage = "./aligned_images/aligned_" + inputFile;
-    std::cout << outputAlignedImage << std::endl;
-    cv::imwrite(outputAlignedImage, session.getAlignedFace());
+    std::string outputPathAlignedImage = "./aligned_images/aligned_" + inputFile;
+    cv::Mat alignedImage = session.getAlignedFace().clone();
+    cv::resize(alignedImage, alignedImage, cv::Size(260, 260)); // aligned image is not cropped by 30 right, 30, left and 60 bottom like face parsing image is.
+    //std::cout << outputAlignedImage << std::endl;
+    cv::imwrite(outputPathAlignedImage, alignedImage);
 
 
 
