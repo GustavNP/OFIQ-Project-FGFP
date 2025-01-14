@@ -394,7 +394,7 @@ void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
     std::cout << inputFile << std::endl;
 
     std::string inputFileWithoutExtension = inputFile.substr(0, inputFile.find_last_of("."));
-    std::string outputPathFaceParsing = "./face_parsing_images/face_parsing_" + inputFileWithoutExtension + ".png";
+    std::string outputPathFaceParsing = "./face_parsing_images/face_parsing_" + inputFileWithoutExtension + ".png"; // save as png because face parsing image needs to be lossless, since  the pixel value is the face parsing class
     cv::resize(faceParsingImage, faceParsingImage, cv::Size(200, 200));
     //std::cout << outputFaceParsing << std::endl;
     cv::imwrite(outputPathFaceParsing, faceParsingImage);
