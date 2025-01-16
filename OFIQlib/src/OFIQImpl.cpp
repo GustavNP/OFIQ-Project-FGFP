@@ -155,7 +155,7 @@ void OFIQImpl::performPreprocessing(Session& session, const std::string& inputFi
 
     //addLandmarksToImage(session);
 
-    divideFaceSkinRegion(session, inputFile);
+    //std::cout << inputFile << std::endl;
 
     log("6. getFaceOcclusionMask ");
     tic = hrclock::now();
@@ -269,8 +269,9 @@ void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
     auto landmarks = session.getAlignedFaceLandmarks();
 
     cv::Mat faceParsingImage = session.getFaceParsingImage().clone();
+    cv::resize(faceParsingImage, faceParsingImage, cv::Size(200, 200));
 
-    float scalingFactor = 400.0f / (session.getAlignedFace().rows - 60.0f);
+    float scalingFactor = 200.0f / (session.getAlignedFace().rows - 60.0f);
 
     OFIQ::Landmarks scaledLandmarks;
     // for each landmark subtract 30 from the x-value
@@ -339,16 +340,16 @@ void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
             subRegionLandmarks.emplace_back(scaledLandmarks[landmarkIds[i]]);
         }
 
-        cv::Mat mask = getPolygonMask(subRegionLandmarks, 400, 1);
+        cv::Mat mask = getPolygonMask(subRegionLandmarks, 200, 1);
         regionMasks.insert(make_pair(regionName, mask));
     }
 
     //std::cout << "Before pixel loop" << std::endl;
 
 
-    for (int i = 0; i < 400; i++) // For each pixel: 400 is the width and height of the image
+    for (int i = 0; i < 200; i++) // For each pixel: 200 is the width and height of the image
     {
-        for (int j = 0; j < 400; j++) // For each pixel: 400 is the width and height of the image
+        for (int j = 0; j < 200; j++) // For each pixel: 200 is the width and height of the image
         {
             if (faceParsingImage.at<uchar>(i, j) == 1) // face skin is value 1
             {
@@ -391,7 +392,7 @@ void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
     }
 
     //std::cout << "After pixel loop" << std::endl;
-    std::cout << inputFile << std::endl;
+    //std::cout << inputFile << std::endl;
 
     std::string inputFileWithoutExtension = inputFile.substr(0, inputFile.find_last_of("."));
     std::string outputPathFaceParsing = "./face_parsing_images/face_parsing_" + inputFileWithoutExtension + ".png"; // save as png because face parsing image needs to be lossless, since  the pixel value is the face parsing class
@@ -401,7 +402,7 @@ void OFIQImpl::divideFaceSkinRegion(Session& session, const string& inputFile) {
 
     std::string outputPathAlignedImage = "./aligned_images/aligned_" + inputFile;
     cv::Mat alignedImage = session.getAlignedFace().clone();
-    cv::resize(alignedImage, alignedImage, cv::Size(260, 260)); // aligned image is not cropped by 30 right, 30, left and 60 bottom like face parsing image is.
+    cv::resize(alignedImage, alignedImage, cv::Size(222, 222)); // face parsing image was scaled from (616-60)px to 200px. The aligned image must be scaled to 200+(200/(616-60))*60=222 (approx) to keep same ratio between face parsing image and aligned image.
     //std::cout << outputAlignedImage << std::endl;
     cv::imwrite(outputPathAlignedImage, alignedImage);
 
