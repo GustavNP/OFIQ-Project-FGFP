@@ -75,7 +75,7 @@ namespace OFIQ_LIB
          * @param[out] quality Computed UnifiedQualityScore.
          * @return OFIQ::ReturnStatus 
          */
-        OFIQ::ReturnStatus scalarQuality(const OFIQ::Image& face, double& quality) override;
+        OFIQ::ReturnStatus scalarQuality(const OFIQ::Image& face, double& quality, const std::string& inputFile) override;
 
 
         /**
@@ -83,10 +83,11 @@ namespace OFIQ_LIB
          * 
          * @param[in] image Input image.
          * @param[out] assessments Container to store the resulting scores.
+         * @param[in] inputFile Input file name.
          * @return OFIQ::ReturnStatus 
          */
         OFIQ::ReturnStatus vectorQuality(
-            const OFIQ::Image& image, OFIQ::FaceImageQualityAssessment& assessments) override;
+            const OFIQ::Image& image, OFIQ::FaceImageQualityAssessment& assessments, const std::string& inputFile) override;
 
     private:
         /**
@@ -150,7 +151,7 @@ namespace OFIQ_LIB
          * computed by the \link OFIQ_LIB::OFIQImpl::performPreprocessing()
          * OFIQImpl::performPreprocessing()\endlink method
          */
-        void performPreprocessing(Session& session);
+        void performPreprocessing(Session& session, const std::string& inputFile);
         
         /**
          * @brief Perform the face alignment.
@@ -160,6 +161,13 @@ namespace OFIQ_LIB
          * OFIQImpl::performPreprocessing()\endlink method
          */
         void alignFaceImage(Session& session);
+
+        void addLandmarksToImage(Session& session);
+
+        void fineGrainedFaceParsing(Session& session, const std::string& inputFile);
+
+        cv::Mat getPolygonMask(OFIQ::Landmarks polygonPoints, int maskSizeOneDirection, int pixelValue);
+
     };
 }
 

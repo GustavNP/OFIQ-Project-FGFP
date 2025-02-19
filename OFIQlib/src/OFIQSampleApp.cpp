@@ -131,6 +131,7 @@ int runQuality(
 
     if (fs::is_directory(fs::path(inputFile)))
     {
+        std::cout << "Is directory." << std::endl;
         imageFiles = readImageFilesFromDirectory(inputFile);
     }
     else if (std::string fileExt = inputFilePath.extension().string();
@@ -141,6 +142,7 @@ int runQuality(
         // single image file
         imageFiles.push_back(inputFile);
 
+    int countProcessed = 0;
     // process image file(s)
     for (auto const& imageFile: imageFiles)
     {
@@ -154,6 +156,13 @@ int runQuality(
             assessment, false);
         string strQAresScalar = exportAssessmentResultsToString(
             assessment, true);
+        
+        countProcessed++;
+        if (countProcessed > 99) // this way we avoid modulo operation
+        {
+            std::cout << "image file reached:" << imageFile << std::endl;
+            countProcessed = 0;
+        }
 
         cout << "raw scores:" << strQAresRaw << std::endl;
         cout << "scalar scores:" << strQAresScalar << std::endl;
@@ -242,7 +251,9 @@ int getQualityAssessmentResults(
     }
 
     std::cout << "--> Start processing image file: " << inputFile << std::endl;
-    retStatus = implPtr->vectorQuality(image, assessments);
+    std::filesystem::path fullPath(inputFile);
+    const std::string filename = fullPath.filename().string();
+    retStatus = implPtr->vectorQuality(image, assessments, filename);
 
     return retStatus.code == ReturnCode::Success ? SUCCESS : FAILURE;
 }
