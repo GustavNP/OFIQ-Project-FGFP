@@ -16,15 +16,15 @@ The project is installed in the same way as the original OFIQ project. See [BUIL
 
 Build commands (for Windows):
   -  (if not already installed) pip install conan==2.0.17
-  - cd <path-to-OFIQ-Project-FGFP>\\scripts
-  - .\build.cmd
+  - cd \<path-to-OFIQ-Project-FGFP\>\\\\scripts
+  - .\\build.cmd
 
 Running OFIQ-FGFP:
-  - cd <path-to-OFIQ-Project-FGFP>\\install_x86_64\\Release\\bin
+  - cd \<path-to-OFIQ-Project-FGFP\>\\\\install_x86_64\\\\Release\\\\bin
   - Single image:
-    - .\OFIQSampleApp -c ..\\..\\..\\data\\ -i ..\\..\\..\\data\\tests\\images\\b-01-smile.png
+    - .\\\\OFIQSampleApp -c ..\\\\..\\\\..\\\\data\\\\ -i ..\\\\..\\\\..\\\\data\\\\tests\\\\images\\\\b-01-smile.png
   - All images in directory:
-    - .\\OFIQSampleApp -c ..\\..\\..\\data\\ -i ..\\..\\..\\data\\tests\\images -o quality-scores-and-measures.csv
+    - .\\\\OFIQSampleApp -c ..\\\\..\\\\..\\\\data\\\\ -i ..\\\\..\\\\..\\\\data\\\\tests\\\\images -o quality-scores-and-measures.csv
 
 README from original repository:
 
