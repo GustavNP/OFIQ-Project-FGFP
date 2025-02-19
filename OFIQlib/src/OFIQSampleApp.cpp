@@ -164,8 +164,8 @@ int runQuality(
             countProcessed = 0;
         }
 
-        //cout << "raw scores:" << strQAresRaw << std::endl;
-        //cout << "scalar scores:" << strQAresScalar << std::endl;
+        cout << "raw scores:" << strQAresRaw << std::endl;
+        cout << "scalar scores:" << strQAresScalar << std::endl;
     }
 
     if (faceImageQAs.empty())
@@ -250,7 +250,7 @@ int getQualityAssessmentResults(
         return FAILURE;
     }
 
-    //std::cout << "--> Start processing image file: " << inputFile << std::endl;
+    std::cout << "--> Start processing image file: " << inputFile << std::endl;
     std::filesystem::path fullPath(inputFile);
     const std::string filename = fullPath.filename().string();
     retStatus = implPtr->vectorQuality(image, assessments, filename);

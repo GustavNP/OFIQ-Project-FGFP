@@ -1,5 +1,5 @@
 //----------------------------
-// Example Configuration File
+// Configuration file for only computing Unified Quality Score
 // using: https://github.com/taocpp/json
 // formatted as: https://github.com/stand-art/jaxn
 // license: MIT

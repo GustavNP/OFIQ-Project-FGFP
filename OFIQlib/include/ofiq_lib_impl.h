@@ -164,7 +164,7 @@ namespace OFIQ_LIB
 
         void addLandmarksToImage(Session& session);
 
-        void divideFaceSkinRegion(Session& session, const std::string& inputFile);
+        void fineGrainedFaceParsing(Session& session, const std::string& inputFile);
 
         cv::Mat getPolygonMask(OFIQ::Landmarks polygonPoints, int maskSizeOneDirection, int pixelValue);
 
