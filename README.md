@@ -4,7 +4,27 @@ The OFIQ project has been modified to compute Fine-Grained Face Parsing (FGFP) m
 
 The Fine-Grained Face Parsing algorithm is implemented in the file [OFIQLib/src/OFIQImpl.cpp](OFIQLib/src/OFIQImpl.cpp).
 
+The project has only been tested in Windows.
 
+For the Fine-Grained Face Parsing algorithm to work, three folders have to be manually added to the installation folder "\OFIQ-Project-FGFP\install_x86_64\Release\bin\". The three folders that have to be added manually:
+  - aligned_images
+  - FGFP_images
+  - score_files
+In "aligned_images", cropped and aligned images are saved after being computed in OFIQ. In "FGFP_images", Fine-Grained Face Parsing masks are saved. In "score_files" UQS and CQM values are saved in csv files.
+
+The project is installed in the same way as the original OFIQ project. See [BUILD.md](BUILD.md) for details, or look here below.
+
+Build commands (for Windows):
+  -  (if not already installed) pip install conan==2.0.17
+  - cd <path-to-OFIQ-Project-FGFP>\\scripts
+  - .\build.cmd
+
+Running OFIQ-FGFP:
+  - cd <path-to-OFIQ-Project-FGFP>\\install_x86_64\\Release\\bin
+  - Single image:
+    - .\OFIQSampleApp -c ..\\..\\..\\data\\ -i ..\\..\\..\\data\\tests\\images\\b-01-smile.png
+  - All images in directory:
+    - .\\OFIQSampleApp -c ..\\..\\..\\data\\ -i ..\\..\\..\\data\\tests\\images -o quality-scores-and-measures.csv
 
 README from original repository:
 
