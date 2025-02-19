@@ -1,3 +1,13 @@
+# Open Source Face Image Quality (OFIQ) with Fine-Grained Face Parsing (FGFP)
+
+The OFIQ project has been modified to compute Fine-Grained Face Parsing (FGFP) masks. It works by dividing the Face Skin region of the existing face parsing algorithm into more smaller sub-regions.
+
+The Fine-Grained Face Parsing algorithm is implemented in the file [OFIQLib/src/OFIQImpl.cpp](OFIQLib/src/OFIQImpl.cpp).
+
+
+
+README from original repository:
+
 # Open Source Face Image Quality (OFIQ)
 
 The __OFIQ__ (Open Source Face Image Quality) is a software library for computing quality 
