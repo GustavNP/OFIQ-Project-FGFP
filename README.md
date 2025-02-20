@@ -2,7 +2,7 @@
 
 The OFIQ project has been modified to compute Fine-Grained Face Parsing (FGFP) masks. It works by dividing the Face Skin region of the existing face parsing algorithm into more smaller sub-regions.
 
-The Fine-Grained Face Parsing algorithm is implemented in the file [OFIQLib/src/OFIQImpl.cpp](OFIQLib/src/OFIQImpl.cpp).
+The Fine-Grained Face Parsing algorithm is implemented in the file [OFIQLib/src/OFIQImpl.cpp](OFIQLib/src/OFIQImpl.cpp). The Fine-Grained Face Parsing methods are highlighted with comments and found on lines 247 and 223.
 
 The project has only been tested in Windows.
 
