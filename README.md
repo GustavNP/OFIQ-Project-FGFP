@@ -13,7 +13,7 @@ For the Fine-Grained Face Parsing algorithm to work, three folders have to be ma
     
 In "aligned_images", cropped and aligned images are saved after being computed in OFIQ. In "FGFP_images", Fine-Grained Face Parsing masks are saved. In "score_files" UQS and CQM values are saved in csv files.
 
-The project is installed in the same way as the original OFIQ project. See [BUILD.md](BUILD.md) for details, or look here below.
+The project is installed in the same way as the original OFIQ project. See [BUILD.md](BUILD.md) for details and dependencies, otherwise look here below.
 
 Build commands (for Windows):
   -  (if not already installed) pip install conan==2.0.17
